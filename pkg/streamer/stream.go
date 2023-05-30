@@ -44,3 +44,19 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/x-mpegURL")
 	http.ServeFile(w, r, playlistFile)
 }
+
+func Play(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("url -->", r.URL, "method -->", r.Method)
+
+	path := r.URL.Path
+	// Remove the "/play/" prefix from the path
+	videoID := strings.TrimPrefix(path, "/play/")
+
+	// Use the videoID as needed
+	fmt.Printf("Playing video with ID: %s\n", videoID)
+
+	videoFilePath := fmt.Sprintf("pkg/storage/%s/video.mp4", videoID)
+	//	serve the video file
+	http.ServeFile(w, r, videoFilePath)
+}
