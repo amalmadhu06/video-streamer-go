@@ -26,6 +26,7 @@ func Stream(c *gin.Context) {
 
 	// file path for locating playlists
 	playlistPath := fmt.Sprintf("pkg/storage/%s/%s", videoID, playlist)
+
 	playlistData, err := ioutil.ReadFile(playlistPath)
 
 	// handle error that may error while reading file
