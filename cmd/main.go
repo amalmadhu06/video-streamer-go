@@ -15,6 +15,8 @@ func main() {
 	//route for playing video with video_id
 	http.HandleFunc("/play/", streamer.Play)
 
+	http.HandleFunc("/hls/", streamer.ServePlaylistCheck)
+
 	http.HandleFunc("/segment/", streamer.SegmentHandler)
 	http.HandleFunc("/playlist/", streamer.PlaylistHandler)
 	http.Handle("/storage/", http.StripPrefix("/storage/", http.FileServer(http.Dir("./storage/"))))
