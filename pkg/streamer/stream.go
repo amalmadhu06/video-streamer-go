@@ -93,7 +93,7 @@ func ServePlaylistCheck(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 	//	// Remove the "/play/" prefix from the path
 	playlist := strings.TrimPrefix(path, "/hls/")
-	playlistPath := fmt.Sprintf("pkg/storage/bc9436f1-d859-495d-84a6-1959905c40fb/%s", playlist)
+	playlistPath := fmt.Sprintf("pkg/storage/d804d1e6-32e1-44bf-a7fe-48d35a84df36/%s", playlist)
 	playlistData, err := ioutil.ReadFile(playlistPath)
 
 	if err != nil {
