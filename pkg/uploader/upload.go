@@ -30,7 +30,7 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// parse video file from request
-	file, header, err := r.FormFile("video")
+	file, _, err := r.FormFile("video")
 
 	// handle the error that may occur while parsing video content from request
 	if err != nil {
@@ -45,7 +45,7 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 	fileUuid := uuid.New()
 	fileName := fileUuid.String()
 	folderPath := "pkg/" + storageLocation + "/" + fileName
-	filePath := "pkg/" + storageLocation + "/" + fileName + "/" + header.Filename
+	filePath := "pkg/" + storageLocation + "/" + fileName + "/" + "video.mp4"
 	err = os.MkdirAll(folderPath, 0755)
 	if err != nil {
 		http.Error(w, "failed to create new folder", http.StatusInternalServerError)
@@ -69,10 +69,11 @@ func Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//wg.Add(1)
-	//go
-	CreatePlaylistAndSegments(filePath, folderPath)
-	//wg.Wait()
+	err = CreatePlaylistAndSegments(filePath, folderPath)
+	if err != nil {
+		http.Error(w, "failed to create playlist and segments", http.StatusInternalServerError)
+		return
+	}
 	response := Response{
 		Message: "Success",
 		Data:    fileName,
@@ -108,7 +109,7 @@ func CreatePlaylistAndSegments(filePath string, folderPath string) error {
 	)
 	output, err := ffmpegCmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to created HLS: %v \nOutput: %s ", err, string(output))
+		return fmt.Errorf("failed to create HLS: %v \nOutput: %s ", err, string(output))
 	}
 	return nil
 }
