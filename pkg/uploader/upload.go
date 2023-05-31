@@ -1,8 +1,8 @@
 package uploader
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
 	"net/http"
@@ -12,84 +12,67 @@ import (
 )
 
 const (
-	storageLocation = "storage"
+	storageLocation = "pkg/storage"
 )
 
-type Response struct {
-	Message string
-	Data    interface{}
-}
+func Upload(c *gin.Context) {
 
-//var wg *sync.WaitGroup
-
-func Upload(w http.ResponseWriter, r *http.Request) {
-	fmt.Printf("url : %v --> Method : %v \n", r.URL, r.Method)
-	if r.Method != "POST" {
-		http.Error(w, "method not allowed", http.StatusBadRequest)
-		return
-	}
-
-	// parse video file from request
-	file, _, err := r.FormFile("video")
-
-	// handle the error that may occur while parsing video content from request
+	file, err := c.FormFile("video")
 	if err != nil {
-		http.Error(w, "failed to retrieve video file from request", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "failed to fetch video file from request",
+			"error":   err.Error(),
+		})
 		return
 	}
 
-	// close the file once operations are over
-	defer file.Close()
-
-	//create a new folder for storing the file
 	fileUuid := uuid.New()
 	fileName := fileUuid.String()
-	folderPath := "pkg/" + storageLocation + "/" + fileName
-	filePath := "pkg/" + storageLocation + "/" + fileName + "/" + "video.mp4"
+	folderPath := storageLocation + "/" + fileName
+	filePath := storageLocation + "/" + fileName + "/" + "video.mp4"
+
 	err = os.MkdirAll(folderPath, 0755)
 	if err != nil {
-		http.Error(w, "failed to create new folder", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "failed to crate directory to store files",
+			"error":   err.Error(),
+		})
+		return
 	}
+
 	// create a new file in the storage/fileName folder
 	newFile, err := os.Create(filePath)
-
 	// handle the error that may occur while creating new file
 	if err != nil {
-		http.Error(w, "failed to create new file", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "failed to crate file to copy video file",
+			"error":   err.Error(),
+		})
 		return
 	}
 
 	// close the newly created file after operation
 	defer newFile.Close()
 
+	src, err := file.Open()
+
 	//	copy uploaded file to new file
-	_, err = io.Copy(newFile, file)
-	if err != nil {
-		http.Error(w, "failed to copy uploaded file to storage", http.StatusInternalServerError)
-		return
-	}
-
-	err = CreatePlaylistAndSegments(filePath, folderPath)
-	if err != nil {
-		http.Error(w, "failed to create playlist and segments", http.StatusInternalServerError)
-		return
-	}
-	response := Response{
-		Message: "Success",
-		Data:    fileName,
-	}
-
-	//convert response struct to json
-	jsonResponse, err := json.Marshal(response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Set the Content-Type header to application/json
-	w.Header().Set("Content-Type", "application/json")
-	// Write the JSON response
-	w.Write(jsonResponse)
+	_, err = io.Copy(newFile, src)
+	c.JSON(http.StatusCreated, gin.H{
+		"message":  "successfully uploaded file to server",
+		"video_id": fileUuid,
+	})
+	go func() {
+		err := CreatePlaylistAndSegments(filePath, folderPath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "failed to create segments and playlist",
+				"error":   err.Error(),
+			})
+			return
+		}
+		fmt.Println("exited without error")
+	}()
 }
 
 func CreatePlaylistAndSegments(filePath string, folderPath string) error {
