@@ -63,4 +63,8 @@ http://localhost:8080/play/dc666bf7-b769-4406-b802-e7fb596fbf36/playlist.m3u8
 
 ![img.png](assets/network-stream.png)
 
-That's it ! 
+
+### Todo 
+
+- [ ] AWS S3 for storage
+- [ ] Support for Audio files
