@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	storageLocation = "pkg/storage"
+	storageLocation = "storage"
 )
 
 func Upload(c *gin.Context) {

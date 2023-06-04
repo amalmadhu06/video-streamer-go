@@ -51,7 +51,7 @@ func Stream(c *gin.Context) {
 
 func readPlaylistData(videoID, playlist string) ([]byte, error) {
 	// Construct the playlist file path
-	playlistPath := fmt.Sprintf("pkg/storage/%s/%s", videoID, playlist)
+	playlistPath := fmt.Sprintf("storage/%s/%s", videoID, playlist)
 
 	// Read the playlist file
 	playlistData, err := ioutil.ReadFile(playlistPath)

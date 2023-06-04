@@ -22,4 +22,4 @@ go.work
 .idea
 
 #storage files
-pkg/storage/
+storage
